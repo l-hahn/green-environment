@@ -1,0 +1,9 @@
+Measuring soil moisture requires to translate frequency to a certain water level.
+The easiest one is to set minimum and maximum of water to a certain frequency.
+
+This was done experimental; in future, there will be a calibration function, that tracks the optimal values aswell.
+
+Currently we use:
+
+- "Air with 40% humidity"  ~  +-9350 HZ
+- "Sensor complete in water"  ~  +- 800 HZ
