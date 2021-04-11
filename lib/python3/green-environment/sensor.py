@@ -2,7 +2,7 @@ import pigpio
 import time
 
 
-class giesomat:
+class GiesOMat:
 
     def default_functor(values: "list of ints" or int, **kwargs):
         if type(values) != list:
