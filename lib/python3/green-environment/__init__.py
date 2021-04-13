@@ -1,1 +1,1 @@
-from sensor import GiesOMat
+from giesomat import GiesOMat
