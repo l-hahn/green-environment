@@ -1,3 +1,4 @@
+import argparse
 import pigpio
 import time
 
@@ -86,3 +87,44 @@ class GiesOMat:
 
     def run_endless(self, functor=default_functor, **kwargs):
         self.run(iteration=-1, **kwargs)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="A short programm to print values from Gies-O-Mat sensor."
+    )
+    parser.add_argument(
+        "-g", metavar="G", nargs="+",type=int,required=True,
+        help="GPIO pin number(s), where the OUT sensor(s) pin is/are attached to."
+    )
+    parser.add_argument(
+        "-p", metavar="P", default=20, type=int, required=False,
+        help="Set Pulse to P µs, default p = 20µs."
+    )
+    parser.add_argument(
+        "-s", metavar="S", default=5, type=int, required=False,
+        help="Set sample rate to S deciseconds [10^-1 s]; default s = 5."
+    )
+    parser.add_argument(
+        "-i", metavar="I", default=10, type=int, required=False,
+        help="Number of iterations to get a value; use -1 for infinity."
+    )
+    
+    args = parser.parse_args()
+    
+    gpio_pins = args.g
+    iterations = -1 if args.i < 0 else args.i
+    pulse = args.p
+    sample_rate = args.s
+
+    connector = GiesOMat(
+        gpio=gpio_pins,
+        pulse=pulse,
+        sample_rate=sample_rate,
+    )
+    connector.run(iterations)
+    
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
