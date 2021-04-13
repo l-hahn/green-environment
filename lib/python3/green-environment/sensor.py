@@ -1,19 +1,15 @@
+import argparse
 import pigpio
 import time
 
 
-class giesomat:
+class GiesOMat:
 
-    def default_functor(values, **kwargs):
-        if type(values) not in (int, float, list):
-            raise ValueError("values not a list or number")
-        if type(values) == list:
-            for value in values:
-                if type(value) not in (int, float):
-                    raise ValueError("GPIO needs to be integer!")
-            print("\t".join(str(value) for value in values), **kwargs)
-        else:
+    def default_functor(values: "list of ints" or int, **kwargs):
+        if type(values) != list:
             print(values, **kwargs)
+        else:
+            print("\t".join(str(value) for value in values), **kwargs)
 
     def __init__(
             self, gpio, pulse=20, sample_rate=5,
@@ -25,37 +21,25 @@ class giesomat:
         self._pin_mask = 0
         self.reset()
 
-    def set_gpio(self, gpio):
-        if type(gpio) not in (int, list):
-            raise ValueError("GPIO not a list or integer")
-        if type(gpio) == list:
-            for gpio_pin in gpio:
-                if type(gpio_pin) != int:
-                    raise ValueError("GPIO needs to be integer!")
+    def set_gpio(self, gpio: "list of ints" or int):
         self._gpio = gpio if type(gpio) == list else [gpio]
 
     def gpio(self):
         return [gpio_pin for gpio_pin in self._gpio]
 
-    def set_pulse(self, pulse):
-        if type(pulse) not in (int, float):
-            raise ValueError("Pulse needs to be integer!")
+    def set_pulse(self, pulse: int):
         self._pulse = pulse
 
     def pulse(self):
         return self._pulse
 
-    def set_sample_rate(self, sample_rate):
-        if type(sample_rate) not in (int, float):
-            raise ValueError("Sample rate needs to be integer or float!")
+    def set_sample_rate(self, sample_rate: int or float):
         self._sample_rate = sample_rate
 
     def sample_rate(self):
         return self._sample_rate
 
-    def set_callback(self, call_back_id):
-        if type(call_back_id) != int:
-            raise ValueError("Call_back_id needs to be integer!")
+    def set_callback(self, call_back_id: int):
         self._call_back_id = call_back_id
 
     def callback(self):
@@ -81,10 +65,8 @@ class giesomat:
         for callback in self._call_backs:
             callback.reset_tally()
 
-    def get(self, iteration):
+    def get(self, iteration: int):
         iteration_values = []
-        if type(iteration) != int:
-            raise ValueError("Iteration needs to be integer!")
         for counter in range(iteration):
             values = [call.tally() for call in self._call_backs]
             for call in self._call_backs:
@@ -93,9 +75,7 @@ class giesomat:
             iteration_values.append(values)
         return iteration_values
 
-    def run(self, iteration=1, functor=default_functor, **kwargs):
-        if type(iteration) != int:
-            raise ValueError("Iteration needs to be integer!")
+    def run(self, iteration: int=1, functor=default_functor, **kwargs):
         while iteration != 0:
             if iteration > 0:
                 iteration -= 1
@@ -107,3 +87,44 @@ class giesomat:
 
     def run_endless(self, functor=default_functor, **kwargs):
         self.run(iteration=-1, **kwargs)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="A short programm to print values from Gies-O-Mat sensor."
+    )
+    parser.add_argument(
+        "-g", metavar="G", nargs="+",type=int,required=True,
+        help="GPIO pin number(s), where the OUT sensor(s) pin is/are attached to."
+    )
+    parser.add_argument(
+        "-p", metavar="P", default=20, type=int, required=False,
+        help="Set Pulse to P µs, default p = 20µs."
+    )
+    parser.add_argument(
+        "-s", metavar="S", default=5, type=int, required=False,
+        help="Set sample rate to S deciseconds [10^-1 s]; default s = 5."
+    )
+    parser.add_argument(
+        "-i", metavar="I", default=10, type=int, required=False,
+        help="Number of iterations to get a value; use -1 for infinity."
+    )
+    
+    args = parser.parse_args()
+    
+    gpio_pins = args.g
+    iterations = -1 if args.i < 0 else args.i
+    pulse = args.p
+    sample_rate = args.s
+
+    connector = GiesOMat(
+        gpio=gpio_pins,
+        pulse=pulse,
+        sample_rate=sample_rate,
+    )
+    connector.run(iterations)
+    
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    main()
