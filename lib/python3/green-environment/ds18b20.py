@@ -82,11 +82,11 @@ class DS18B20:
         """
         This functions loads the required 1-wire devices.
         If no device list is provided, all available devices will be used.
-        
+
         Keyword arguments:
             devices (list of str) -- the devices to be used; leave empty
                 to use all devices
-        
+
         """
         device_list = [devices] if not isinstance(devices, list) else devices
         # filter available 1-wire devices #
@@ -99,12 +99,12 @@ class DS18B20:
         self._devices = [
             dev for dev in one_wire_devices
             if "w1_slave" in (
-                item for item in os.scandir("{}/{}".format(self._devices, dev))
+                item.name for item in os.scandir("{}/{}".format(self._device_path, dev))
             )
         ]
 
         # reduce to chosen, active devices #
-        if device_list is not None:
+        if device_list != [None]:
             self._devices = [
                 device
                 for device in self._devices
@@ -177,8 +177,8 @@ class DS18B20:
         else:
             # Kelvin temperature scale #
             self._translator = self.__to_kelvin
-    
-    
+
+
     def scale(self):
         """
         The function to get (by return) the current used temperature scale.
@@ -265,7 +265,8 @@ class DS18B20:
         for _ in range(iteration):
             current_temp = []
             for device in self._devices:
-                with open(device, "r") as bytestream:
+                one_wire_file = "{}/{}/w1_slave".format(self._device_path, device)
+                with open(one_wire_file, "r") as bytestream:
                     data = [
                         item.rstrip().split(" ")[-1] for item in bytestream.readlines()
                     ]
@@ -274,6 +275,7 @@ class DS18B20:
                     else:
                         current_temp.append(None)
             iteration_values.append(current_temp)
+            time.sleep(self._idle_time)
         if iteration == 1:
             return iteration_values[0]
         return iteration_values
@@ -298,7 +300,8 @@ class DS18B20:
                 iteration -= 1
             current_temp = []
             for device in self._devices:
-                with open(device, "r") as bytestream:
+                one_wire_file = "{}/{}/w1_slave".format(self._device_path, device)
+                with open(one_wire_file, "r") as bytestream:
                     data = [
                         item.rstrip().split(" ")[-1] for item in bytestream.readlines()
                     ]
@@ -334,12 +337,12 @@ def main():
         description="A short programm to print values from DS18B20 sensor."
     )
     parser.add_argument(
-        "-d", metavar="G", nargs="+", type=str, required=True,
+        "-d", metavar="D", nargs="+", type=str, required=True,
         help="The devices 1-wire, that should be used to measure temperature."
     )
     parser.add_argument(
-        "-t", metavar="S", default=2, type=int, required=False,
-        help="Set idle time (break between measurements); default s = 2."
+        "-t", metavar="T", default=2, type=int, required=False,
+        help="Set idle time (break between measurements); default t = 2."
     )
     parser.add_argument(
         "-c", metavar="C", default="C", type=str, required=False,
@@ -349,7 +352,7 @@ def main():
         "-i", metavar="I", default=10, type=int, required=False,
         help="Number of iterations to get a value; use -1 for infinity."
     )
-    
+
     args = parser.parse_args()
     devices = args.d
     iterations = -1 if args.i < 0 else args.i
