@@ -26,7 +26,7 @@ class GiesOMat:
     GPIO pins.
 
     Methods:
-        defualt_functor(values, **kwargs)
+        default_functor(values, **kwargs)
         __init__
         set_gpio(gpio)
         gpio()
@@ -46,8 +46,9 @@ class GiesOMat:
         An example of how functions can be passed to the run function,
         to make use of a value handling (e.g. printing values).
 
-        Args:
+        Keyword arguments:
             values (list of ints) -- the measured values for one run.
+        Args:
             **kwargs -- arguments that can be evaluated in another function
         """
         if not isinstance(values, list):
@@ -62,7 +63,7 @@ class GiesOMat:
         Constructor to instantiate an object, that is able to handle multiple
         sensors at once.
 
-        Args:
+        Keyword arguments:
             gpio (int, list of ints) -- GPIO pins that are connected to 'OUT'
             pulse (int, optional) -- The time for the charging wave. Defaults to 20.
             sample_rate (int, optional) -- Time span how long to count switches. Defaults to 5.
@@ -99,7 +100,7 @@ class GiesOMat:
         """
         Sets the pulse value (in µs) to the instance and on runtime.
 
-        Args:
+        Keyword arguments:
             pulse (int) -- The pulse value in µs.
         """
         self._pulse = pulse
@@ -118,7 +119,7 @@ class GiesOMat:
         Sets the sample_rate value (in deciseconds [10^-1 s])to the instance
         and on runtime.
 
-        Args:
+        Keyword arguments:
             sample_rate (int) -- The sample_rate value in deciseconds.
         """
         self._sample_rate = sample_rate
@@ -137,7 +138,7 @@ class GiesOMat:
         Sets the used callback trigger (when to count, rising, falling switch
         point).
 
-        Args:
+        Keyword arguments:
             call_back_id (int) -- The callback id, e.g. pigpio.RISING_EDGE.
         """
         self._call_back_id = call_back_id
@@ -180,7 +181,7 @@ class GiesOMat:
         Function to get a certain amount of measured values; there is no
         on-line handling. Values will be measured and returned.
 
-        Args:
+        Keyword arguments:
             iteration (int, optional) -- Measured values amount. Defaults to 1.
 
         Returns:
@@ -193,10 +194,10 @@ class GiesOMat:
         iteration_values = []
         for _ in range(iteration):
             values = [call.tally() for call in self._call_backs]
+            iteration_values.append(values)
             for call in self._call_backs:
                 call.reset_tally()
             time.sleep(0.1 * self._sample_rate)
-            iteration_values.append(values)
         if iteration == 1:
             return iteration_values[0]
         return iteration_values
@@ -207,11 +208,13 @@ class GiesOMat:
         Evaluation can be a print function or a self-defined function.
         Options can be passed with **kwargs.
 
-        Args:
+        Keyword arguments:
             iteration (int, optional) -- Number of measurements to be done.
                 Defaults to 1.
             functor (function_ptr, optional) -- An evaluationfunction.
                 Defaults to default_functor.
+        Args:
+            **kwargs -- arguments that can be evaluated in another function.
         """
         # initialise/reset once to have values with beginning!
         for call in self._call_backs:
@@ -232,9 +235,11 @@ class GiesOMat:
         Evaluation can be a print function or a self-defined function.
         Options can be passed with **kwargs.
 
-        Args:
+        Keyword arguments:
             functor (function_ptr, optional) -- An evaluationfunction.
                 Defaults to default_functor.
+        Args:
+            **kwargs -- arguments that can be evaluated in another function.
         """
         self.run(iteration=-1, functor=functor, **kwargs)
 
